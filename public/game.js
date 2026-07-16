@@ -19,7 +19,7 @@ let stars = [];
 let playerHistory = []; 
 let spawnTimer = 0;
 
-// ইউনিক ডিভাইস আইডি ট্র্যাকিং লজিক
+// 🔒 ডিভাইস ফিঙ্গারপ্রিন্ট ট্র্যাকিং (এক ফোনে ভিন্ন ব্রাউজারে একই আইডি দিবে)
 function getOrCreateDeviceId() {
   let deviceId = localStorage.getItem('zen_drift_device_id');
   if (deviceId) return deviceId;
@@ -82,14 +82,14 @@ window.addEventListener('mousemove', (e) => {
   if (gameActive) updateInput(e.clientX);
 });
 
-// টাচ স্টার্ট (সাথে সাথে অ্যাকশন নিতে)
+// টাচ স্টার্ট (প্রথম ছোঁয়াতেই বল নড়বে)
 window.addEventListener('touchstart', (e) => {
   if (gameActive && e.touches.length > 0) {
     updateInput(e.touches[0].clientX);
   }
 }, { passive: true });
 
-// টাচ মুভ কন্ট্রোল
+// টাচ মুভ কন্ট্রোল (আঙুলের নিচে রিয়েল-টাইমে লেগে থাকবে)
 window.addEventListener('touchmove', (e) => {
   if (gameActive && e.touches.length > 0) {
     updateInput(e.touches[0].clientX);
@@ -97,7 +97,7 @@ window.addEventListener('touchmove', (e) => {
   }
 }, { passive: false });
 
-// ব্যাকগ্রাউন্ড স্টার্স
+// ব্যাকগ্রাউন্ড ধীরগতির ভাসমান তারা
 class Star {
   constructor() {
     this.x = Math.random() * canvas.width;
@@ -118,7 +118,7 @@ class Star {
   }
 }
 
-// সাইন-ওয়েভ মোশনের লাল অবস্টাকল
+// সাইন-ওয়েভ বা আঁকাবাঁকা গতির লাল বাধা
 class Obstacle {
   constructor() {
     this.width = Math.random() * 90 + 70; 
@@ -149,7 +149,7 @@ class Obstacle {
   }
 }
 
-// গোল্ডেন স্টার
+// গোল্ডেন বোনাস স্টার
 class GoldStar {
   constructor() {
     this.x = Math.random() * (canvas.width - 40) + 20;
@@ -298,7 +298,7 @@ function animate(timestamp) {
     }
   });
 
-  // সুপার-রেসপন্সিভ ০.৩৫ ট্রানজিশন স্পিড
+  // সুপার-রেসপন্সিভ ০.৩৫ ট্রানজিশন স্পিড (Lag-free)
   player.x += (player.targetX - player.x) * 0.35;
 
   playerHistory.push({ x: player.x, y: player.y });
@@ -324,10 +324,11 @@ function animate(timestamp) {
   ctx.fill();
   ctx.restore();
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-  ctx.font = '12px sans-serif';
+  // 🏷️ আপনার কাস্টম ব্র্যান্ডিং ও ওয়াটারমার্ক
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = 'bold 12px sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('Made by an Indian Developer', canvas.width - 20, canvas.height - 20);
+  ctx.fillText('Developed by Kiran Mondal', canvas.width - 20, canvas.height - 20);
 
   spawnTimer++;
   if (spawnTimer % 100 === 0) { 
@@ -388,3 +389,4 @@ function animate(timestamp) {
 
 startBtn.addEventListener('click', startGame);
 fetchLeaderboard();
+      
