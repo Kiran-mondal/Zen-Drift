@@ -1,6 +1,8 @@
 import express from 'express';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -12,6 +14,13 @@ const pool = new Pool({
 });
 
 app.use(express.json());
+
+// ES Modules-এ __dirname সেটআপ করা
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// public ফোল্ডারের ফাইলগুলোকে স্ট্যাটিক হিসেবে সার্ভ করা
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Auto-initialize Neon DB Table
 async function initDb() {
@@ -30,10 +39,15 @@ async function initDb() {
   }
 }
 
-// Check database connection & table before routing API
+// প্রতিবার রিকোয়েস্ট আসার আগে টেবিল চেক করা
 app.use(async (req, res, next) => {
   await initDb();
   next();
+});
+
+// মেইন রুট (/) ক্লিক করলে সরাসরি index.html ফাইলটি লোড হবে
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 // Save or Update High Score using Device ID
