@@ -3,8 +3,9 @@
 A minimalist, open-source web arcade game optimized for speed, mental relaxation, and focus. Built with absolute core technologies, it features a real-time global leaderboard and cross-device scaling.
 
 ## 🌐 Live Demo
-Play the game instantly here: **[https://zen-drift-production.up.railway.app/](https://zen-drift-production.up.railway.app/)**
-*(Loads in less than 1.5 seconds on mobile & desktop browsers!)*
+Play the game instantly here: 
+
+**[Play Zen-Drift Live on Railway](https://zen-drift-production.up.railway.app/)**
 
 ## 🎯 Key Features
 * **Flow State Design:** Zero aggressive graphics or stressful sounds. Engineered purely for anxiety relief and mindfulness.
