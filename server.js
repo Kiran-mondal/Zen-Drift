@@ -12,48 +12,55 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Neon PostgreSQL কানেকশন পুল সেটআপ
 const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false // Neon সুরক্ষিত সংযোগের জন্য এটি প্রয়োজন
+    rejectUnauthorized: false
   }
 });
 
 app.use(express.json());
-// public ফোল্ডারের ফাইলগুলো স্ট্যাটিক হিসেবে সার্ভ করা হবে
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ডাটাবেজ টেবিল স্বয়ংক্রিয়ভাবে তৈরি করার ফাংশন
+// টেবিলে device_id এবং UNIQUE কনস্ট্রেইন্ট যোগ করা হয়েছে
 async function initDb() {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leaderboards (
         id SERIAL PRIMARY KEY,
+        device_id VARCHAR(100) UNIQUE NOT NULL,
         username VARCHAR(50) NOT NULL,
         score INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log("Neon Database initialized successfully.");
+    console.log("Neon Database initialized with Device ID tracking.");
   } catch (err) {
     console.error("Database initialization failed:", err.message);
   }
 }
 initDb();
 
-// নতুন স্কোর ডাটাবেজে সাবমিট করার API Endpoint
+// একই ডিভাইসের জন্য স্কোর ইনসার্ট অথবা হাই-স্কোর আপডেট করার লজিক
 app.post('/api/score', async (req, res) => {
-  const { username, score } = req.body;
-  if (!username || typeof score !== 'number') {
+  const { username, score, deviceId } = req.body;
+  if (!username || typeof score !== 'number' || !deviceId) {
     return res.status(400).json({ error: 'Invalid data' });
   }
   try {
-    const result = await pool.query(
-      'INSERT INTO leaderboards (username, score) VALUES ($1, $2) RETURNING *',
-      [username, score]
-    );
+    // ON CONFLICT ব্যবহার করে একই device_id থাকলে শুধু হাই-স্কোর আপডেট করা হবে
+    const result = await pool.query(`
+      INSERT INTO leaderboards (device_id, username, score) 
+      VALUES ($1, $2, $3)
+      ON CONFLICT (device_id) 
+      DO UPDATE SET 
+        username = EXCLUDED.username,
+        score = CASE WHEN EXCLUDED.score > leaderboards.score THEN EXCLUDED.score ELSE leaderboards.score END,
+        created_at = CURRENT_TIMESTAMP
+      RETURNING *;
+    `, [deviceId, username, score]);
+    
     res.json({ success: true, entry: result.rows[0] });
   } catch (err) {
     console.error(err);
@@ -61,11 +68,10 @@ app.post('/api/score', async (req, res) => {
   }
 });
 
-// ডাটাবেজ থেকে সর্বোচ্চ ১০টি স্কোর আনার API Endpoint
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT username, score, created_at FROM leaderboards ORDER BY score DESC LIMIT 10'
+      'SELECT username, score FROM leaderboards ORDER BY score DESC LIMIT 10'
     );
     res.json(result.rows);
   } catch (err) {
@@ -74,7 +80,6 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-// অন্যান্য সমস্ত রিকোয়েস্টের জন্য মেইন ইণ্ডেক্স ফাইলটি সার্ভ করা হবে
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
