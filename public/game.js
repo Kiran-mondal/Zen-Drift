@@ -7,7 +7,6 @@ const scoreVal = document.getElementById('scoreVal');
 const usernameInput = document.getElementById('username');
 const leaderboardEntries = document.getElementById('leaderboardEntries');
 
-// Custom Alert DOM References
 const customAlert = document.getElementById('customAlert');
 const alertMsg = document.getElementById('alertMsg');
 const alertBtn = document.getElementById('alertBtn');
@@ -18,6 +17,22 @@ let obstacles = [];
 let particles = [];
 let stars = [];
 let spawnTimer = 0;
+
+// ইউনিক ডিভাইস আইডি জেনারেট বা রিড করার ফাংশন
+function getOrCreateDeviceId() {
+  let deviceId = localStorage.getItem('zen_drift_device_id');
+  if (!deviceId) {
+    deviceId = 'device_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    localStorage.setItem('zen_drift_device_id', deviceId);
+  }
+  return deviceId;
+}
+const DEVICE_ID = getOrCreateDeviceId();
+
+// প্রোভাইডেড ইউজারনেম সেভ করে রাখার লজিক (যাতে বারবার টাইপ না করতে হয়)
+if (localStorage.getItem('zen_drift_username')) {
+  usernameInput.value = localStorage.getItem('zen_drift_username');
+}
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -163,11 +178,12 @@ async function fetchLeaderboard() {
 
 async function submitScore() {
   const username = usernameInput.value || 'Anonymous';
+  localStorage.setItem('zen_drift_username', username); // নাম সেভ রাখা হচ্ছে
   try {
     await fetch('/api/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, score })
+      body: JSON.stringify({ username, score, deviceId: DEVICE_ID }) // Device ID পাঠানো হচ্ছে
     });
   } catch (err) {
     console.error('Score submit error:', err);
@@ -185,21 +201,18 @@ function startGame() {
   player.x = canvas.width / 2;
   player.targetX = canvas.width / 2;
   gameActive = true;
-  menu.style.style.display = 'none';
-  customAlert.style.display = 'none'; // পপ-আপ হাইড
+  menu.style.display = 'none';
+  customAlert.style.display = 'none';
   animate(0);
 }
 
 function endGame() {
   gameActive = false;
   submitScore().then(() => fetchLeaderboard());
-  
-  // কাস্টম ডার্ক মডাল অ্যালার্ট শো করানোর কোড
   alertMsg.innerText = `Your total score: ${score} pt`;
   customAlert.style.display = 'block';
 }
 
-// Custom Alert OK বাটন প্রেস করলে মেনু ফিরে আসবে
 alertBtn.addEventListener('click', () => {
   customAlert.style.display = 'none';
   menu.style.display = 'block';
@@ -301,4 +314,3 @@ function animate(timestamp) {
 
 startBtn.addEventListener('click', startGame);
 fetchLeaderboard();
-      
