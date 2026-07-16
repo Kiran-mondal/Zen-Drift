@@ -16,15 +16,14 @@ let gameActive = false;
 let obstacles = [];
 let particles = [];
 let stars = [];
+let playerHistory = []; 
 let spawnTimer = 0;
 
-// 🔒 শক্তিশালী ডিভাইস ফিঙ্গারপ্রিন্টিং লজিক (একই ফোনের সব ব্রাউজারে ১টি আইডি দেবে)
+// ইউনিক ডিভাইস আইডি ট্র্যাকিং
 function getOrCreateDeviceId() {
-  // ১. প্রথমে ব্রাউজারের লোকাল স্টোরেজ চেক করা
   let deviceId = localStorage.getItem('zen_drift_device_id');
   if (deviceId) return deviceId;
 
-  // ২. ডিভাইসের নির্দিষ্ট হার্ডওয়্যার ডেটা সংগ্রহ করা (যা ব্রাউজার বদলালেও একই থাকে)
   const screenWidth = window.screen.width || 0;
   const screenHeight = window.screen.height || 0;
   const colorDepth = window.screen.colorDepth || 0;
@@ -32,40 +31,32 @@ function getOrCreateDeviceId() {
   const cores = navigator.hardwareConcurrency || 2;
   const language = navigator.language || 'en';
   
-  // অপারেটিং সিস্টেম শনাক্তকরণ
   const userAgent = navigator.userAgent;
   let os = "unknown";
   if (userAgent.indexOf("Android") !== -1) os = "android";
   else if (userAgent.indexOf("iPhone") !== -1 || userAgent.indexOf("iPad") !== -1) os = "ios";
   else if (userAgent.indexOf("Windows") !== -1) os = "windows";
 
-  // ৩. হার্ডওয়্যার ও স্ক্রিন ডেটা একসাথে মিলিয়ে একটি ফিঙ্গারপ্রিন্ট টেক্সট তৈরি করা
   const rawFingerprint = `${os}-${screenWidth}x${screenHeight}-${colorDepth}-${pixelRatio}-${cores}-${language}`;
   
-  // ৪. এই টেক্সটটিকে একটি ইউনিক ম্যাথমেটিক্যাল হ্যাশ কোডে রূপান্তর করা
   let hash = 0;
   for (let i = 0; i < rawFingerprint.length; i++) {
     const char = rawFingerprint.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   
   const finalFingerprint = 'dev_' + Math.abs(hash);
-  
-  // ব্রাউজারের লোকাল স্টোরেজে ভবিষ্যতের জন্য সেভ রাখা
   localStorage.setItem('zen_drift_device_id', finalFingerprint);
   return finalFingerprint;
 }
 
-// গ্লোবাল ডিভাইস আইডি কনস্ট্যান্ট
 const DEVICE_ID = getOrCreateDeviceId();
 
-// ইউজার আগে নিজের নাম পরিবর্তন করে থাকলে তা ধরে রাখা
 if (localStorage.getItem('zen_drift_username')) {
   usernameInput.value = localStorage.getItem('zen_drift_username');
 }
 
-// স্ক্রিন রিসাইজ হ্যান্ডলার
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -82,29 +73,36 @@ const player = {
   color: '#58a6ff'
 };
 
-// প্লেয়ারের পজিশন কন্ট্রোল
 function updateInput(x) {
   player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, x));
 }
 
-// মাউস এবং টাচ ইভেন্ট কন্ট্রোল
+// 🖱️ মাউস মুভমেন্ট (ডেস্কটপ)
 window.addEventListener('mousemove', (e) => {
   if (gameActive) updateInput(e.clientX);
 });
 
+// 📱 টাচ স্টার্ট (প্রথমবার আঙুল ছোঁয়ানোর সাথে সাথে প্রতিক্রিয়া করবে)
+window.addEventListener('touchstart', (e) => {
+  if (gameActive && e.touches.length > 0) {
+    updateInput(e.touches[0].clientX);
+  }
+}, { passive: true });
+
+// 📱 টাচ মুভ (আঙুল টানার সাথে সাথে বল চলবে)
 window.addEventListener('touchmove', (e) => {
   if (gameActive && e.touches.length > 0) {
     updateInput(e.touches[0].clientX);
-    e.preventDefault();
+    e.preventDefault(); // পেজ স্ক্রোল হওয়া বন্ধ করবে
   }
 }, { passive: false });
 
-// ব্যাকগ্রাউন্ডের মিটিমিটি জ্বলতে থাকা তারা
+// ব্যাকগ্রাউন্ডের মিটিমিটি তারা
 class Star {
   constructor() {
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
-    this.speed = Math.random() * 1 + 0.5;
+    this.speed = Math.random() * 0.4 + 0.1; 
     this.size = Math.random() * 1.5;
   }
   update() {
@@ -115,88 +113,104 @@ class Star {
     }
   }
   draw() {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.fillRect(this.x, this.y, this.size, this.size);
   }
 }
 
-// বাধা বা অবস্টাকল ক্লাস
+// আঁকাবাঁকা গতির লাল বাধা
 class Obstacle {
   constructor() {
-    this.width = Math.random() * 120 + 80;
-    this.height = 15;
+    this.width = Math.random() * 90 + 70; 
+    this.height = 16;
     this.x = Math.random() * (canvas.width - this.width);
-    this.y = -20;
-    this.speed = 3 + (score * 0.05); // স্কোর বাড়ার সাথে সাথে স্পিড বাড়ে
+    this.y = -30;
+    this.speed = 1.8 + (score * 0.02); 
+    this.angle = Math.random() * Math.PI * 2; 
+    this.waveRange = Math.random() * 1.5 + 0.5; 
   }
   update() {
     this.y += this.speed;
-  }
-  draw() {
-    ctx.fillStyle = '#ff7b72';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#ff7b72';
-    ctx.beginPath();
-    ctx.roundRect(this.x, this.y, this.width, this.height, 8);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-}
-
-// পয়েন্ট বা গোল্ডেন স্টার ক্লাস (যা কালেক্ট করলে ২৫ পয়েন্ট পাওয়া যায়)
-class GoldStar {
-  constructor() {
-    this.x = Math.random() * (canvas.width - 20) + 10;
-    this.y = -20;
-    this.speed = 2.5;
-    this.radius = 8;
-  }
-  update() {
-    this.y += this.speed;
-  }
-  draw() {
-    ctx.fillStyle = '#f8e3a1';
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = '#f8e3a1';
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-}
-
-// পার্টিকল ইফেক্ট ক্লাস
-class Particle {
-  constructor(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.vx = (Math.random() - 0.5) * 6;
-    this.vy = (Math.random() - 0.5) * 6;
-    this.alpha = 1;
-    this.color = color;
-  }
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.alpha -= 0.02;
+    this.angle += 0.02; 
+    this.x += Math.sin(this.angle) * this.waveRange; 
+    
+    if (this.x < 0) this.x = 0;
+    if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
   }
   draw() {
     ctx.save();
-    ctx.globalAlpha = this.alpha;
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = '#ff7b72';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#ff7b72';
     ctx.beginPath();
-    ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+    ctx.roundRect(this.x, this.y, this.width, this.height, 8);
     ctx.fill();
     ctx.restore();
   }
 }
 
-// ব্যাকগ্রাউন্ড স্টার্স ইনিশিয়ালাইজেশন
+// গোল্ডেন স্টার 
+class GoldStar {
+  constructor() {
+    this.x = Math.random() * (canvas.width - 40) + 20;
+    this.y = -30;
+    this.speed = 1.5;
+    this.radius = 8;
+    this.angle = Math.random() * Math.PI * 2;
+  }
+  update() {
+    this.y += this.speed;
+    this.angle += 0.03;
+    this.x += Math.cos(this.angle) * 0.5; 
+  }
+  draw() {
+    ctx.save();
+    ctx.fillStyle = '#f8e3a1';
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = '#f8e3a1';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// কণা বিস্ফোরণ ইফেক্ট
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    const speedMultiplier = Math.random() * 4 + 2;
+    const angle = Math.random() * Math.PI * 2;
+    this.vx = Math.cos(angle) * speedMultiplier;
+    this.vy = Math.sin(angle) * speedMultiplier;
+    this.alpha = 1;
+    this.color = color;
+    this.size = Math.random() * 3 + 2;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += 0.04; 
+    this.alpha -= 0.015;
+  }
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = this.color;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 for (let i = 0; i < 60; i++) {
   stars.push(new Star());
 }
 
-// সার্ভার থেকে টপ ১০ লিডারবোর্ড ডেটা আনা
 async function fetchLeaderboard() {
   try {
     const res = await fetch('/api/leaderboard');
@@ -217,7 +231,6 @@ async function fetchLeaderboard() {
   }
 }
 
-// সার্ভারে স্কোর পাঠানো (ইউনিক ডিভাইস আইডি অনুযায়ী)
 async function submitScore() {
   const username = usernameInput.value.trim() || 'Player 1';
   localStorage.setItem('zen_drift_username', username);
@@ -232,13 +245,13 @@ async function submitScore() {
   }
 }
 
-// গেম শুরু করার লজিক
 function startGame() {
   score = 0;
   scoreVal.innerText = score;
   obstacles = [];
   particles = [];
   stars = [];
+  playerHistory = [];
   for (let i = 0; i < 60; i++) stars.push(new Star());
   
   player.x = canvas.width / 2;
@@ -249,7 +262,6 @@ function startGame() {
   animate(0);
 }
 
-// গেম ওভার হওয়ার লজিক
 function endGame() {
   gameActive = false;
   submitScore().then(() => fetchLeaderboard());
@@ -262,7 +274,6 @@ alertBtn.addEventListener('click', () => {
   menu.style.display = 'block';
 });
 
-// সংঘর্ষ বা কলিশন চেক লজিক (Circle to Rectangle Collision)
 function checkCollision(circle, rect) {
   let closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
   let closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
@@ -274,15 +285,12 @@ function checkCollision(circle, rect) {
   return distanceSquared < (circle.radius * circle.radius);
 }
 
-// মেইন গেম লুপ (অ্যানিমেশন)
 function animate(timestamp) {
   if (!gameActive) return;
 
-  // ব্যাকগ্রাউন্ড ক্লিয়ার
   ctx.fillStyle = '#090d16';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // ব্যাকগ্রাউন্ড তারা আপডেট ও ড্র
   stars.forEach(s => {
     if (s instanceof Star) {
       s.update();
@@ -290,34 +298,45 @@ function animate(timestamp) {
     }
   });
 
-  // প্লেয়ারের মন্থর মুভমেন্ট ইফেক্ট (Easing)
-  player.x += (player.targetX - player.x) * 0.15;
+  // 🚀 ট্রানজিশন স্পিড ০.১২ থেকে বাড়িয়ে ০.৩৫ করা হয়েছে (অত্যন্ত রেসপন্সিভ)
+  player.x += (player.targetX - player.x) * 0.35;
 
-  // প্লেয়ার ড্র
+  playerHistory.push({ x: player.x, y: player.y });
+  if (playerHistory.length > 10) playerHistory.shift();
+
+  for (let i = 0; i < playerHistory.length; i++) {
+    const ratio = i / playerHistory.length;
+    ctx.save();
+    ctx.globalAlpha = ratio * 0.3;
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.arc(playerHistory[i].x, playerHistory[i].y, player.radius * ratio, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.save();
   ctx.fillStyle = player.color;
-  ctx.shadowBlur = 15;
+  ctx.shadowBlur = 20;
   ctx.shadowColor = player.color;
   ctx.beginPath();
   ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
   ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.restore();
 
-  // ওয়াটারমার্ক ড্র
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
   ctx.font = '12px sans-serif';
   ctx.textAlign = 'right';
   ctx.fillText('Made by an Indian Developer', canvas.width - 20, canvas.height - 20);
 
-  // অবস্টাকল ও পয়েন্ট স্পন টাইমার
   spawnTimer++;
-  if (spawnTimer % 90 === 0) {
+  if (spawnTimer % 100 === 0) { 
     obstacles.push(new Obstacle());
-    if (Math.random() < 0.6) {
+    if (Math.random() < 0.7) {
       stars.push(new GoldStar());
     }
   }
 
-  // অবস্টাকল আপডেট ও চেক
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let obs = obstacles[i];
     obs.update();
@@ -335,7 +354,6 @@ function animate(timestamp) {
     }
   }
 
-  // পয়েন্ট তারা সংগ্রহ ও চেক
   for (let i = stars.length - 1; i >= 0; i--) {
     let st = stars[i];
     if (st instanceof GoldStar) {
@@ -344,7 +362,7 @@ function animate(timestamp) {
 
       let dist = Math.hypot(player.x - st.x, player.y - st.y);
       if (dist < player.radius + st.radius) {
-        for (let p = 0; p < 10; p++) {
+        for (let p = 0; p < 15; p++) {
           particles.push(new Particle(st.x, st.y, '#f8e3a1'));
         }
         stars.splice(i, 1);
@@ -356,7 +374,6 @@ function animate(timestamp) {
     }
   }
 
-  // বিস্ফোরণ কণা (Particles) আপডেট
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i];
     p.update();
@@ -371,3 +388,4 @@ function animate(timestamp) {
 
 startBtn.addEventListener('click', startGame);
 fetchLeaderboard();
+  
