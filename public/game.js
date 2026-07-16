@@ -14,7 +14,6 @@ let particles = [];
 let stars = [];
 let spawnTimer = 0;
 
-// স্ক্রিনের সাইজ অনুযায়ী ক্যানভাস অ্যাডজাস্ট করার ফাংশন
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -22,7 +21,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// প্লেয়ার অবজেক্ট
+// Player Configuration
 const player = {
   x: canvas.width / 2,
   y: canvas.height * 0.75,
@@ -31,25 +30,23 @@ const player = {
   color: '#58a6ff'
 };
 
-// ইনপুট হ্যান্ডলার (প্লেয়ারকে স্ক্রিনের ভেতরে ধরে রাখে)
 function updateInput(x) {
   player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, x));
 }
 
-// মাউস কন্ট্রোল (ডেক্সটপের জন্য)
+// Controls
 window.addEventListener('mousemove', (e) => {
   if (gameActive) updateInput(e.clientX);
 });
 
-// টাচ কন্ট্রোল (অ্যান্ড্রয়েড ১০+ এবং সমস্ত আধুনিক মোবাইল ডিভাইসের জন্য)
 window.addEventListener('touchmove', (e) => {
   if (gameActive && e.touches.length > 0) {
     updateInput(e.touches[0].clientX);
-    e.preventDefault(); // ব্রাউজারের ডিফল্ট রিফ্রেশ বা স্ক্রল হওয়া বন্ধ করে
+    e.preventDefault();
   }
 }, { passive: false });
 
-// ব্যাকগ্রাউন্ডের শান্ত নক্ষত্র (Stars) ক্লাস
+// Ambient Stars
 class Star {
   constructor() {
     this.x = Math.random() * canvas.width;
@@ -70,20 +67,20 @@ class Star {
   }
 }
 
-// বাধা (Obstacles) ক্লাস
+// Obstacles
 class Obstacle {
   constructor() {
     this.width = Math.random() * 120 + 80;
     this.height = 15;
     this.x = Math.random() * (canvas.width - this.width);
     this.y = -20;
-    this.speed = 3 + (score * 0.05); // স্কোরের সাথে সাথে গতি সামান্য বৃদ্ধি পায়
+    this.speed = 3 + (score * 0.05);
   }
   update() {
     this.y += this.speed;
   }
   draw() {
-    ctx.fillStyle = '#ff7b72'; // সফট লালচে আভা
+    ctx.fillStyle = '#ff7b72';
     ctx.shadowBlur = 10;
     ctx.shadowColor = '#ff7b72';
     ctx.beginPath();
@@ -93,7 +90,7 @@ class Obstacle {
   }
 }
 
-// সংগ্রহ করার জন্য গোল্ডেন স্টার ক্লাস
+// Collectibles
 class GoldStar {
   constructor() {
     this.x = Math.random() * (canvas.width - 20) + 10;
@@ -105,7 +102,7 @@ class GoldStar {
     this.y += this.speed;
   }
   draw() {
-    ctx.fillStyle = '#f8e3a1'; // সফট গোল্ডেন হলুদ রঙ
+    ctx.fillStyle = '#f8e3a1';
     ctx.shadowBlur = 12;
     ctx.shadowColor = '#f8e3a1';
     ctx.beginPath();
@@ -115,7 +112,7 @@ class GoldStar {
   }
 }
 
-// পয়েন্ট পাওয়ার পর চমৎকার কণা ছড়িয়ে পড়ার এনিমেশন ক্লাস
+// Particles
 class Particle {
   constructor(x, y, color) {
     this.x = x;
@@ -141,19 +138,18 @@ class Particle {
   }
 }
 
-// ব্যাকগ্রাউন্ডের জন্য প্রথমবার স্টার জেনারেট করা
+// Init Background Stars
 for (let i = 0; i < 60; i++) {
   stars.push(new Star());
 }
 
-// Neon Database থেকে লিডারবোর্ড লোড করা
 async function fetchLeaderboard() {
   try {
     const res = await fetch('/api/leaderboard');
     const data = await res.json();
     leaderboardEntries.innerHTML = '';
     if (data.length === 0) {
-      leaderboardEntries.innerHTML = '<div>এখনও কোনো রেকর্ড নেই। প্রথম হোন!</div>';
+      leaderboardEntries.innerHTML = '<div>No records yet. Be the first!</div>';
       return;
     }
     data.forEach((item, idx) => {
@@ -163,11 +159,10 @@ async function fetchLeaderboard() {
       leaderboardEntries.appendChild(row);
     });
   } catch (err) {
-    leaderboardEntries.innerHTML = '<div>ডাটাবেস কানেকশন ব্যর্থ হয়েছে</div>';
+    leaderboardEntries.innerHTML = '<div>Database connection failed</div>';
   }
 }
 
-// Neon Database-এ স্কোর সাবমিট করা
 async function submitScore() {
   const username = usernameInput.value || 'Anonymous';
   try {
@@ -181,7 +176,6 @@ async function submitScore() {
   }
 }
 
-// গেম শুরু করার ফাংশন
 function startGame() {
   score = 0;
   scoreVal.innerText = score;
@@ -197,15 +191,13 @@ function startGame() {
   animate(0);
 }
 
-// গেম শেষ হওয়ার ফাংশন
 function endGame() {
   gameActive = false;
   submitScore().then(() => fetchLeaderboard());
   menu.style.display = 'block';
-  alert(`খেলা শেষ! আপনার মোট স্কোর: ${score}`);
+  alert(`Game Over! Your total score: ${score}`);
 }
 
-// প্লেয়ারের সাথে বাধার সংঘর্ষ (Collision) চেক করার ফাংশন
 function checkCollision(circle, rect) {
   let closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
   let closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
@@ -217,7 +209,6 @@ function checkCollision(circle, rect) {
   return distanceSquared < (circle.radius * circle.radius);
 }
 
-// মেইন অ্যানিমেশন লুপ
 function animate(timestamp) {
   if (!gameActive) return;
 
@@ -229,7 +220,6 @@ function animate(timestamp) {
     s.draw();
   });
 
-  // স্মুথ ইলাস্টিক মুভমেন্ট
   player.x += (player.targetX - player.x) * 0.15;
 
   ctx.fillStyle = player.color;
@@ -240,6 +230,12 @@ function animate(timestamp) {
   ctx.fill();
   ctx.shadowBlur = 0;
 
+  // Render "Made by an Indian Developer" credit dynamically on the bottom right corner during gameplay
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('Made by an Indian Developer', canvas.width - 20, canvas.height - 20);
+
   spawnTimer++;
   if (spawnTimer % 90 === 0) {
     obstacles.push(new Obstacle());
@@ -248,7 +244,6 @@ function animate(timestamp) {
     }
   }
 
-  // বাধার পজিশন আপডেট ও ড্রয়িং
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let obs = obstacles[i];
     obs.update();
@@ -261,12 +256,11 @@ function animate(timestamp) {
 
     if (obs.y > canvas.height) {
       obstacles.splice(i, 1);
-      score += 5; // বাধা অতিক্রম করার জন্য বোনাস
+      score += 5;
       scoreVal.innerText = score;
     }
   }
 
-  // গোল্ডেন স্টার সংগ্রহ করা চেক করা
   for (let i = stars.length - 1; i >= 0; i--) {
     let st = stars[i];
     if (st instanceof GoldStar) {
@@ -279,7 +273,7 @@ function animate(timestamp) {
           particles.push(new Particle(st.x, st.y, '#f8e3a1'));
         }
         stars.splice(i, 1);
-        score += 25; // বড় স্টার সংগ্রহ বোনাস
+        score += 25;
         scoreVal.innerText = score;
       } else if (st.y > canvas.height) {
         stars.splice(i, 1);
@@ -287,7 +281,6 @@ function animate(timestamp) {
     }
   }
 
-  // পার্টিকেল এনিমেশন আপডেট
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i];
     p.update();
