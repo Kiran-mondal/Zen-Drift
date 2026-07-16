@@ -7,6 +7,11 @@ const scoreVal = document.getElementById('scoreVal');
 const usernameInput = document.getElementById('username');
 const leaderboardEntries = document.getElementById('leaderboardEntries');
 
+// Custom Alert DOM References
+const customAlert = document.getElementById('customAlert');
+const alertMsg = document.getElementById('alertMsg');
+const alertBtn = document.getElementById('alertBtn');
+
 let score = 0;
 let gameActive = false;
 let obstacles = [];
@@ -21,7 +26,6 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// Player Configuration
 const player = {
   x: canvas.width / 2,
   y: canvas.height * 0.75,
@@ -34,7 +38,6 @@ function updateInput(x) {
   player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, x));
 }
 
-// Controls
 window.addEventListener('mousemove', (e) => {
   if (gameActive) updateInput(e.clientX);
 });
@@ -46,7 +49,6 @@ window.addEventListener('touchmove', (e) => {
   }
 }, { passive: false });
 
-// Ambient Stars
 class Star {
   constructor() {
     this.x = Math.random() * canvas.width;
@@ -67,7 +69,6 @@ class Star {
   }
 }
 
-// Obstacles
 class Obstacle {
   constructor() {
     this.width = Math.random() * 120 + 80;
@@ -90,7 +91,6 @@ class Obstacle {
   }
 }
 
-// Collectibles
 class GoldStar {
   constructor() {
     this.x = Math.random() * (canvas.width - 20) + 10;
@@ -112,7 +112,6 @@ class GoldStar {
   }
 }
 
-// Particles
 class Particle {
   constructor(x, y, color) {
     this.x = x;
@@ -138,7 +137,6 @@ class Particle {
   }
 }
 
-// Init Background Stars
 for (let i = 0; i < 60; i++) {
   stars.push(new Star());
 }
@@ -159,7 +157,7 @@ async function fetchLeaderboard() {
       leaderboardEntries.appendChild(row);
     });
   } catch (err) {
-    leaderboardEntries.innerHTML = '<div>Database connection failed</div>';
+    leaderboardEntries.innerHTML = '<div>Leaderboard unavailable</div>';
   }
 }
 
@@ -187,16 +185,25 @@ function startGame() {
   player.x = canvas.width / 2;
   player.targetX = canvas.width / 2;
   gameActive = true;
-  menu.style.display = 'none';
+  menu.style.style.display = 'none';
+  customAlert.style.display = 'none'; // পপ-আপ হাইড
   animate(0);
 }
 
 function endGame() {
   gameActive = false;
   submitScore().then(() => fetchLeaderboard());
-  menu.style.display = 'block';
-  alert(`Game Over! Your total score: ${score}`);
+  
+  // কাস্টম ডার্ক মডাল অ্যালার্ট শো করানোর কোড
+  alertMsg.innerText = `Your total score: ${score} pt`;
+  customAlert.style.display = 'block';
 }
+
+// Custom Alert OK বাটন প্রেস করলে মেনু ফিরে আসবে
+alertBtn.addEventListener('click', () => {
+  customAlert.style.display = 'none';
+  menu.style.display = 'block';
+});
 
 function checkCollision(circle, rect) {
   let closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
@@ -230,7 +237,6 @@ function animate(timestamp) {
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Render "Made by an Indian Developer" credit dynamically on the bottom right corner during gameplay
   ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
   ctx.font = '12px sans-serif';
   ctx.textAlign = 'right';
@@ -295,3 +301,4 @@ function animate(timestamp) {
 
 startBtn.addEventListener('click', startGame);
 fetchLeaderboard();
+      
