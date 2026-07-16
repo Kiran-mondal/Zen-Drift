@@ -19,7 +19,7 @@ let stars = [];
 let playerHistory = []; 
 let spawnTimer = 0;
 
-// ইউনিক ডিভাইস আইডি ট্র্যাকিং
+// ইউনিক ডিভাইস আইডি ট্র্যাকিং লজিক
 function getOrCreateDeviceId() {
   let deviceId = localStorage.getItem('zen_drift_device_id');
   if (deviceId) return deviceId;
@@ -77,27 +77,27 @@ function updateInput(x) {
   player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, x));
 }
 
-// 🖱️ মাউস মুভমেন্ট (ডেস্কটপ)
+// মাউস কন্ট্রোল
 window.addEventListener('mousemove', (e) => {
   if (gameActive) updateInput(e.clientX);
 });
 
-// 📱 টাচ স্টার্ট (প্রথমবার আঙুল ছোঁয়ানোর সাথে সাথে প্রতিক্রিয়া করবে)
+// টাচ স্টার্ট (সাথে সাথে অ্যাকশন নিতে)
 window.addEventListener('touchstart', (e) => {
   if (gameActive && e.touches.length > 0) {
     updateInput(e.touches[0].clientX);
   }
 }, { passive: true });
 
-// 📱 টাচ মুভ (আঙুল টানার সাথে সাথে বল চলবে)
+// টাচ মুভ কন্ট্রোল
 window.addEventListener('touchmove', (e) => {
   if (gameActive && e.touches.length > 0) {
     updateInput(e.touches[0].clientX);
-    e.preventDefault(); // পেজ স্ক্রোল হওয়া বন্ধ করবে
+    e.preventDefault();
   }
 }, { passive: false });
 
-// ব্যাকগ্রাউন্ডের মিটিমিটি তারা
+// ব্যাকগ্রাউন্ড স্টার্স
 class Star {
   constructor() {
     this.x = Math.random() * canvas.width;
@@ -118,7 +118,7 @@ class Star {
   }
 }
 
-// আঁকাবাঁকা গতির লাল বাধা
+// সাইন-ওয়েভ মোশনের লাল অবস্টাকল
 class Obstacle {
   constructor() {
     this.width = Math.random() * 90 + 70; 
@@ -149,7 +149,7 @@ class Obstacle {
   }
 }
 
-// গোল্ডেন স্টার 
+// গোল্ডেন স্টার
 class GoldStar {
   constructor() {
     this.x = Math.random() * (canvas.width - 40) + 20;
@@ -175,7 +175,7 @@ class GoldStar {
   }
 }
 
-// কণা বিস্ফোরণ ইফেক্ট
+// কণা বিস্ফোরণ ইফেক্ট (Particle Sparkle)
 class Particle {
   constructor(x, y, color) {
     this.x = x;
@@ -298,7 +298,7 @@ function animate(timestamp) {
     }
   });
 
-  // 🚀 ট্রানজিশন স্পিড ০.১২ থেকে বাড়িয়ে ০.৩৫ করা হয়েছে (অত্যন্ত রেসপন্সিভ)
+  // সুপার-রেসপন্সিভ ০.৩৫ ট্রানজিশন স্পিড
   player.x += (player.targetX - player.x) * 0.35;
 
   playerHistory.push({ x: player.x, y: player.y });
@@ -388,4 +388,3 @@ function animate(timestamp) {
 
 startBtn.addEventListener('click', startGame);
 fetchLeaderboard();
-  
