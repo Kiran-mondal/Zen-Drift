@@ -3,7 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zen Drift</title>
+  <title>Zen Drift — Relaxing Arcade Game by Kiran Mondal</title>
+  <meta name="title" content="Zen Drift — Relaxing Arcade Game by Kiran Mondal">
+  <meta name="description" content="Play Zen Drift, a beautiful, high-satisfaction relaxing arcade game developed by Kiran Mondal (Babai). Dodge obstacles, collect golden stars, and top the leaderboard!">
+  <meta name="keywords" content="Zen Drift, Kiran Mondal, Babai, Kiran Mondal Games, Zen Drift Game, Relaxing Game, HTML5 Arcade Game, Neon Game, JavaScript Game">
+  <meta name="author" content="Kiran Mondal (Babai)">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zen Drift — Relaxing Arcade Game by Kiran Mondal">
+  <meta property="og:description" content="Play Zen Drift, a beautiful, high-satisfaction relaxing arcade game developed by Kiran Mondal. Dodge obstacles, collect golden stars, and top the leaderboard!">
+  <meta property="og:image" content="/logo.svg">
+
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Zen Drift — Relaxing Arcade Game by Kiran Mondal">
+  <meta property="twitter:description" content="Play Zen Drift, a beautiful, high-satisfaction relaxing arcade game developed by Kiran Mondal.">
+  <meta property="twitter:image" content="/logo.svg">
+
+  <link rel="icon" type="image/svg+xml" href="/logo.svg">
+
   <style>
     * {
       box-sizing: border-box;
@@ -28,7 +46,7 @@
       top: 0;
       left: 0;
       z-index: 1;
-      touch-action: none; /* মোবাইলের টাচ ডিলে বা ল্যাগ সম্পূর্ণ বন্ধ করার জন্য */
+      touch-action: none; /* মোবাইলে ৩ মিলি-সেকেন্ডের টাচ ডিলে সম্পূর্ণ রিমুভ করার জন্য */
     }
     .ui-container {
       position: absolute;
@@ -42,7 +60,7 @@
     .interactive {
       pointer-events: auto;
     }
-    /* গ্লসি ফ্রস্টেড গ্লাস ডিজাইন */
+    /* গ্লাসি বা ফ্রস্টেড গ্লাস ডিজাইন */
     .glass-panel {
       background: rgba(13, 17, 23, 0.7);
       backdrop-filter: blur(12px);
@@ -104,7 +122,7 @@
     button:active {
       background: #2ea043;
     }
-    /* স্কোরবোর্ড স্টাইল */
+    /* রিয়েল-টাইম স্কোর স্টাইল */
     .score-banner {
       position: absolute;
       top: 20px;
@@ -145,7 +163,7 @@
     .leaderboard-row:last-child {
       border-bottom: none;
     }
-    /* কাস্টম অ্যালার্ট পপআপ */
+    /* গেম ওভার অ্যালার্ট পপআপ */
     #customAlert {
       display: none;
       position: absolute;
