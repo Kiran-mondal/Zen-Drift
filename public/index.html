@@ -16,9 +16,9 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #090d16;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #e6edf3;
+      background-color: #090d16;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: #adbac7;
     }
     canvas {
       display: block;
@@ -28,201 +28,165 @@
       top: 0;
       left: 0;
       z-index: 1;
+      touch-action: none; /* মোবাইলের টাচ ডিলে বা ল্যাগ সম্পূর্ণ বন্ধ করার জন্য */
     }
-    #ui {
+    .ui-container {
       position: absolute;
-      top: 20px;
-      left: 20px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       z-index: 2;
       pointer-events: none;
     }
-    .score-container {
-      font-size: 24px;
-      font-weight: 300;
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+    .interactive {
+      pointer-events: auto;
     }
-    
-    /* 🌌 ট্রেন্ডি ঘষা কাঁচের (Frosted Glass) মেইন মেনু */
+    /* গ্লসি ফ্রস্টেড গ্লাস ডিজাইন */
+    .glass-panel {
+      background: rgba(13, 17, 23, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(240, 246, 252, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
     #menu {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 3;
-      text-align: center;
-      
-      /* গ্লাস মরফিজম ইফেক্ট */
-      background: rgba(13, 17, 23, 0.45);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      
-      padding: 35px 25px;
-      border-radius: 20px;
-      border: 1px solid rgba(88, 166, 255, 0.25);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      width: 90%;
-      max-width: 380px;
-      transition: all 0.3s ease;
     }
-    
-    /* 🔴 ঘষা কাঁচের গেম ওভার পপ-আপ */
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #58a6ff;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #768390;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      background: rgba(22, 27, 34, 0.8);
+      border: 1px solid #444c56;
+      border-radius: 8px;
+      color: #adbac7;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    input[type="text"]:focus {
+      border-color: #58a6ff;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #238636;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:active {
+      background: #2ea043;
+    }
+    /* স্কোরবোর্ড স্টাইল */
+    .score-banner {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #adbac7;
+      background: rgba(13, 17, 23, 0.6);
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(240, 246, 252, 0.05);
+    }
+    #scoreVal {
+      color: #f8e3a1;
+    }
+    /* লিডারবোর্ড ডিজাইন */
+    .leaderboard-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #768390;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(240, 246, 252, 0.1);
+      padding-bottom: 6px;
+    }
+    .leaderboard-entries {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .leaderboard-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(240, 246, 252, 0.03);
+    }
+    .leaderboard-row:last-child {
+      border-bottom: none;
+    }
+    /* কাস্টম অ্যালার্ট পপআপ */
     #customAlert {
       display: none;
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 10;
-      text-align: center;
-      
-      background: rgba(20, 24, 33, 0.6);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      
-      padding: 30px 25px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 123, 114, 0.4);
-      box-shadow: 0 0 30px rgba(255, 123, 114, 0.25);
-      width: 85%;
-      max-width: 340px;
-      animation: fadeIn 0.3s ease-in-out;
     }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -45%); }
-      to { opacity: 1; transform: translate(-50%, -50%); }
+    #alertBtn {
+      background: #21262d;
+      border: 1px solid #444c56;
     }
-    .alert-title {
-      color: #ff7b72;
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 12px;
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(255, 123, 114, 0.5);
-    }
-    .alert-msg {
-      font-size: 16px;
-      color: #c9d1d9;
-      margin-bottom: 25px;
-    }
-    .alert-btn {
-      background: rgba(88, 166, 255, 0.15);
-      color: #58a6ff;
-      border: 1px solid rgba(88, 166, 255, 0.4);
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      transition: background 0.2s;
-    }
-    .alert-btn:hover {
-      background: rgba(88, 166, 255, 0.3);
-    }
-    
-    h1 {
-      font-size: 36px;
-      margin-bottom: 12px;
-      color: #58a6ff;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      text-shadow: 0 0 15px rgba(88, 166, 255, 0.6);
-    }
-    p {
-      font-size: 14px;
-      color: #8b949e;
-      margin-bottom: 25px;
-      line-height: 1.6;
-    }
-    input {
-      width: 100%;
-      padding: 14px;
-      background: rgba(13, 17, 23, 0.6);
-      border: 1px solid rgba(48, 54, 61, 0.8);
-      border-radius: 10px;
-      color: #fff;
-      margin-bottom: 18px;
-      outline: none;
-      text-align: center;
-      font-size: 16px;
-      transition: border-color 0.2s;
-    }
-    input:focus {
-      border-color: #58a6ff;
-      box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
-    }
-    button#startBtn {
-      background: #238636;
-      color: white;
-      border: none;
-      padding: 14px 30px;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      font-weight: bold;
-      width: 100%;
-      box-shadow: 0 4px 15px rgba(35, 134, 54, 0.4);
-      transition: background 0.2s, transform 0.1s;
-    }
-    button#startBtn:hover {
-      background: #2ea043;
-    }
-    button#startBtn:active {
-      transform: scale(0.98);
-    }
-    #leaderboard {
-      margin-top: 25px;
-      text-align: left;
-      font-size: 14px;
-    }
-    .leaderboard-title {
-      color: #58a6ff;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.6);
-      padding-bottom: 6px;
-      margin-bottom: 12px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    .leaderboard-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      color: #c9d1d9;
-      padding: 4px 0;
+    #alertBtn:active {
+      background: #30363d;
     }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <div class="score-container">Score: <span id="scoreVal">0</span></div>
-  </div>
-
-  <!-- Custom Frosted Glass Alert Box -->
-  <div id="customAlert">
-    <div class="alert-title">GAME OVER</div>
-    <div id="alertMsg" class="alert-msg">Your total score: 0 pt</div>
-    <button id="alertBtn" class="alert-btn">OK</button>
-  </div>
-
-  <!-- Main Menu with Frosted Glass Effect -->
-  <div id="menu">
-    <h1>Zen Drift</h1>
-    <p>A minimalist game to calm your mind. Drag your finger or mouse to avoid obstacles and collect glowing stars.</p>
-    
-    <!-- ডিফল্ট ভ্যালু হিসেবে 'Player 1' সেট করা হয়েছে -->
-    <input type="text" id="username" placeholder="Enter your name" maxlength="15" value="Player 1">
-    
-    <button id="startBtn">Play Game</button>
-    
-    <div id="leaderboard">
-      <div class="leaderboard-title">Top 10 Players</div>
-      <div id="leaderboardEntries">Loading...</div>
-    </div>
-  </div>
 
   <canvas id="gameCanvas"></canvas>
 
-  <script src="/game.js"></script>
+  <div class="ui-container">
+    <div class="score-banner">Score: <span id="scoreVal">0</span></div>
+
+    <div id="menu" class="glass-panel interactive">
+      <h1>Zen Drift</h1>
+      <div class="subtitle">Drift through obstacles & gather stars</div>
+      <input type="text" id="username" placeholder="Enter Player Name" maxlength="15" value="Player 1">
+      <button id="startBtn">START GAME</button>
+      
+      <div class="leaderboard-title">🏆 Top Drift Leaders</div>
+      <div id="leaderboardEntries" class="leaderboard-entries">
+        </div>
+    </div>
+
+    <div id="customAlert" class="glass-panel interactive">
+      <h1 style="color: #ff7b72;">Game Over</h1>
+      <p id="alertMsg" style="margin: 15px 0; font-size: 16px;"></p>
+      <button id="alertBtn">BACK TO MENU</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
