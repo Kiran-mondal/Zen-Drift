@@ -13,7 +13,7 @@ const pool = new Pool({
 
 app.use(express.json());
 
-// ডাটাবেজ টেবিল অটো-ইনিশিয়ালাইজ করার লজিক
+// Auto-initialize Neon DB Table
 async function initDb() {
   try {
     await pool.query(`
@@ -30,17 +30,17 @@ async function initDb() {
   }
 }
 
-// প্রতিবার রিকোয়েস্ট আসলে টেবিল চেক করবে
+// Check database connection & table before routing API
 app.use(async (req, res, next) => {
   await initDb();
   next();
 });
 
-// স্কোর সাবমিট API
+// Save or Update High Score using Device ID
 app.post('/api/score', async (req, res) => {
   const { username, score, deviceId } = req.body;
   if (!username || typeof score !== 'number' || !deviceId) {
-    return res.status(400).json({ error: 'Invalid data' });
+    return res.status(400).json({ error: 'Invalid payload' });
   }
   try {
     const result = await pool.query(`
@@ -57,11 +57,11 @@ app.post('/api/score', async (req, res) => {
     res.json({ success: true, entry: result.rows[0] });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: 'Database query failed' });
   }
 });
 
-// লিডারবোর্ড ফেচ API
+// Fetch Top 10 Leaderboard
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const result = await pool.query(
@@ -70,9 +70,8 @@ app.get('/api/leaderboard', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: 'Database query failed' });
   }
 });
 
 export default app;
-
