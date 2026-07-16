@@ -57,6 +57,53 @@
       width: 90%;
       max-width: 400px;
     }
+    /* Custom Neon Pop-up Modal CSS */
+    #customAlert {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      text-align: center;
+      background: rgba(20, 24, 33, 0.95);
+      padding: 25px;
+      border-radius: 12px;
+      border: 1px solid #ff7b72;
+      box-shadow: 0 0 20px rgba(255, 123, 114, 0.3);
+      width: 85%;
+      max-width: 350px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -45%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    .alert-title {
+      color: #ff7b72;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .alert-msg {
+      font-size: 16px;
+      color: #c9d1d9;
+      margin-bottom: 20px;
+    }
+    .alert-btn {
+      background: #30363d;
+      color: #58a6ff;
+      border: 1px solid #30363d;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+    .alert-btn:hover {
+      border-color: #58a6ff;
+    }
     h1 {
       font-size: 32px;
       margin-bottom: 15px;
@@ -125,13 +172,19 @@
     <div class="score-container">Score: <span id="scoreVal">0</span></div>
   </div>
 
+  <div id="customAlert">
+    <div class="alert-title">GAME OVER</div>
+    <div id="alertMsg" class="alert-msg">Your total score: 0</div>
+    <button id="alertBtn" class="alert-btn">OK</button>
+  </div>
+
   <div id="menu">
     <h1>Zen Drift</h1>
     <p>A minimalist game to calm your mind. Drag your finger or mouse to avoid obstacles and collect glowing stars.</p>
     <input type="text" id="username" placeholder="Enter your name" maxlength="15" value="Player">
     <button id="startBtn">Play Game</button>
     <div id="leaderboard">
-      <div class="leaderboard-title">Top 10 Scores (Neon DB)</div>
+      <div class="leaderboard-title">Top 10 Players</div>
       <div id="leaderboardEntries">Loading...</div>
     </div>
   </div>
