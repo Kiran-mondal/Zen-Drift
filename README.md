@@ -5,7 +5,7 @@ A minimalist, open-source web arcade game optimized for speed, mental relaxation
 ## 🌐 Live Demo
 Anyone can play the game instantly without installing anything. Click the official public web link below to play directly in your browser:
 
-**👉 [Play Zen-Drift Live on Vercel](https://zen-drift-tawny.vercel.app/)**
+**👉 [Play Zen-Drift Live on Vercel](https://zendrift.quarry.dpdns.org/)**
 
 ## 🎯 Key Features
 * **Flow State Design:** Zero aggressive graphics or stressful sounds. Engineered purely for anxiety relief and mindfulness.
