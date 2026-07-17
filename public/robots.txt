@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /logo.svg
+
+# ব্যাকএন্ড এপিআই ও কনফিগারেশন ফাইল এড়িয়ে চলার জন্য
+Disallow: /api/
+Disallow: /vercel.json
+
+# সাইটম্যাপ লিংক
+Sitemap: https://zendrift.quarry.dpdns.org/sitemap.xml
